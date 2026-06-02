@@ -1,0 +1,31 @@
+# 数据集
+dataset/
+
+# 模型权重
+*.pth
+*.pt
+*.onnx
+*.h5
+*.pb
+
+# 预测输出
+houai_pytroch/result/
+houai_pytroch/result_compare/
+houai_pytroch/result_v2/
+
+# Python 虚拟环境
+houai_pytroch/venv/
+houai_tf/venv/
+
+# Python 缓存
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE
+.vscode/
+.idea/
+
+# 其他
+.ipynb_checkpoints/
+*.log

@@ -18,7 +18,7 @@ IM_WIDTH, IM_HEIGHT = 256, 256
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_V1 = os.path.join(BASE_DIR, 'venv', 'model_pytorch', 'best_model.pth')
+MODEL_V1 = os.path.join(BASE_DIR, 'venv', 'model_pytorch', 'best_model_150.pth')
 MODEL_V2 = os.path.join(BASE_DIR, 'venv', 'model_pytorch_v2', 'best_model.pth')
 SRC_DIR = 'D:/Code/code_project/python/project/houai/dataset/srcs'
 MASK_DIR = 'D:/Code/code_project/python/project/houai/dataset/labels_png'
