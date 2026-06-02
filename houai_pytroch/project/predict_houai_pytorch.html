@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>喉癌病灶区识别预测 (PyTorch)</title>
+    <style>
+        body { text-align: center; font-family: "Microsoft YaHei", sans-serif; }
+        .toolbar { margin: 15px 0; }
+        .toolbar > * { margin: 0 5px; }
+        #model-selector { padding: 4px 8px; }
+        #predict-button { padding: 8px 24px; cursor: pointer; }
+        table { margin: 20px auto; border-collapse: collapse; }
+        td { padding: 8px; }
+        #selected-image, #result-img {
+            height: 512px; width: 512px;
+            border: 1px solid #ccc;
+            object-fit: contain;
+        }
+        .error { color: red; margin-top: 10px; }
+        .info { color: #666; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <h3>喉癌病灶区识别预测 (PyTorch)</h3>
+    <p class="info">绿色轮廓 = 真实标注，蓝色轮廓 = 模型预测</p>
+
+    <div class="toolbar">
+        <label for="model-selector">模型：</label>
+        <select id="model-selector">
+            <option value="">加载中…</option>
+        </select>
+        <input id="image-selector" type="file" accept="image/*">
+        <button id="predict-button" type="button">预 测</button>
+    </div>
+    <div id="error-msg" class="error"></div>
+
+    <table>
+        <tr>
+            <td><img id="selected-image" src=""></td>
+            <td><img id="result-img" src=""></td>
+        </tr>
+        <tr>
+            <td>您选择的喉部图片</td>
+            <td>预测结果</td>
+        </tr>
+    </table>
+
+    <script src="jquery-3.6.0.min.js"></script>
+    <script>
+        const API_BASE = 'http://127.0.0.1:5000';
+
+        let base64Image = '';
+        let imgName = '';
+
+        // 页面加载时获取可用模型列表
+        $(function () {
+            $.get(API_BASE + '/models', function (response) {
+                const $sel = $('#model-selector').empty();
+                response.models.forEach(function (m) {
+                    $sel.append($('<option>').val(m).text(m));
+                });
+            }).fail(function () {
+                // 后端可能还没加 /models 接口，手动填充默认值
+                $('#model-selector').html('<option value="myUnet-pytorch.pth">myUnet-pytorch.pth</option>');
+            });
+        });
+
+        // 选择图片
+        $('#image-selector').on('change', function () {
+            const file = this.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const dataUrl = e.target.result;
+                imgName = file.name;
+                $('#selected-image').attr('src', dataUrl);
+                base64Image = dataUrl.split(',')[1];
+                $('#result-img').attr('src', '');
+                $('#error-msg').text('');
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // 点击预测
+        $('#predict-button').on('click', function () {
+            if (!base64Image) {
+                $('#error-msg').text('请先选择一张图片');
+                return;
+            }
+
+            const $btn = $(this);
+            $btn.prop('disabled', true).text('预测中…');
+
+            $.ajax({
+                url: API_BASE + '/predict_houai',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    image: base64Image,
+                    imgName: imgName,
+                    model: $('#model-selector').val()
+                }),
+                success: function (response) {
+                    $('#result-img').attr('src', 'static/pic/' + response.result_img);
+                    $('#error-msg').text('');
+                },
+                error: function (xhr) {
+                    let msg = '预测失败';
+                    try {
+                        msg = JSON.parse(xhr.responseText).message || msg;
+                    } catch (e) {}
+                    $('#error-msg').text(msg);
+                },
+                complete: function () {
+                    $btn.prop('disabled', false).text('预 测');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

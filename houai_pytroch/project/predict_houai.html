@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>喉癌病灶区识别预测</title>
+</head>
+<body>
+    <h3>喉癌病灶区识别预测：绿色为真实值，红色为预测值</h3>
+    <input id='image-selector' type='file'>
+    <button id='predict-button' type='button'>预 测</button>
+
+    <br/>
+    <table align="center">
+        <tr>
+            <td>
+                <img id="selected-image" src="" height = '512' width = '512'/>
+            </td>
+            <td>
+                <img id="result_img" src="" height = '512' width = '512'/>
+            </td>
+        </tr>
+        <tr>
+            <td align="center">您选择的喉部图片</td>
+            <td align="center">预测的图片</td>
+        </tr>
+    </table>
+    <script src="jquery-3.6.0.min.js"></script>
+
+    <script>
+
+        $.support.cors = true;
+        let base64Image;  // 上传的图片内容
+        let imgName;      // 上传的图片名称，用于获取真实值进行对比
+        <!-- 选择图片-->
+        $('#image-selector').change(function () {
+            let reader = new FileReader();
+            reader.onload = function (e) {
+                let dataUrl = reader.result;
+                imgName = $("#image-selector").val()
+                imgName = imgName.substring(imgName.lastIndexOf("\\")+1)
+                console.log("图片路径："+imgName);
+                $('#selected-image').attr('src', dataUrl);
+                //base64Image = dataUrl.replace('data:image/jpeg;base64,', '');
+                base64Image = dataUrl.split(',')[1];
+            } <!-- end on load -->
+            reader.readAsDataURL($('#image-selector')[0].files[0]);
+            $('#result_img').attr('src', '');    // 清空预测结果中的图片
+        }); <!-- end on change -->
+        <!-- 点击预测按钮-->
+        $('#predict-button').click(function (event) {
+            let message = {
+                image: base64Image,
+                'imgName': imgName
+            }
+            $.post('http://192.168.1.15:5000/predict_houai', JSON.stringify(message), function (response) {
+                let imgPath = response.result_img
+                console.log(response)
+                console.log(response.result_img)
+                //$('#result_img').attr('static', 'pic/'+imgPath)
+                $('#result_img').attr('src', 'static/pic/' + imgPath);
+                //$('#result_img').attr('src', 'http://192.168.1.15:5000/static/pic/' + imgPath);
+            });
+        });
+    </script>
+</body>
+</html>
